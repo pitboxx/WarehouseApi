@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Laptop",
+    "description": "High-performance laptop",
+    "price": 999.99,
+    "quantity": 10,
+    "sku": "LP-001",
+    "createdAt": "2026-05-24T13:44:32.0277287Z",
+    "updatedAt": "2026-05-24T13:44:32.0277288Z",
+    "departmentId": 2,
+    "department": null
+  },
+  {
+    "id": 2,
+    "name": "Smartphone",
+    "description": "Latest smartphone model",
+    "price": 699.99,
+    "quantity": 25,
+    "sku": "SP-002",
+    "createdAt": "2026-05-24T13:44:32.0278716Z",
+    "updatedAt": "2026-05-24T13:44:32.0278717Z",
+    "departmentId": 2,
+    "department": null
+  },
+  {
+    "id": 3,
+    "name": "T-Shirt",
+    "description": "Cotton t-shirt",
+    "price": 19.99,
+    "quantity": 100,
+    "sku": "TS-003",
+    "createdAt": "2026-05-24T13:44:32.0278718Z",
+    "updatedAt": "2026-05-24T13:44:32.0278719Z",
+    "departmentId": 3,
+    "department": null
+  }
+]

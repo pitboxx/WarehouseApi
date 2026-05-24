@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "\u002B1234567890",
+    "role": "Manager",
+    "createdAt": "2026-05-24T06:54:07.0028158Z",
+    "updatedAt": "2026-05-24T06:54:07.0028159Z",
+    "departmentId": 1,
+    "department": null
+  },
+  {
+    "id": 2,
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com",
+    "phone": "\u002B0987654321",
+    "role": "Employee",
+    "createdAt": "2026-05-24T06:54:07.0029222Z",
+    "updatedAt": "2026-05-24T06:54:07.0029223Z",
+    "departmentId": 2,
+    "department": null
+  },
+  {
+    "id": 3,
+    "firstName": "Bob",
+    "lastName": "Johnson",
+    "email": "bob.johnson@example.com",
+    "phone": "\u002B1122334455",
+    "role": "Admin",
+    "createdAt": "2026-05-24T06:54:07.0029224Z",
+    "updatedAt": "2026-05-24T06:54:07.0029225Z",
+    "departmentId": 3,
+    "department": null
+  },
+  {
+    "id": 4,
+    "firstName": "",
+    "lastName": "",
+    "email": "",
+    "phone": "",
+    "role": "Employee",
+    "createdAt": "2026-05-24T09:07:21.5347259Z",
+    "updatedAt": "2026-05-24T09:16:21.517404Z",
+    "departmentId": 2,
+    "department": null
+  }
+]

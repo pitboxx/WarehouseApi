@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Main Warehouse",
+    "description": "Primary storage facility",
+    "location": "Building A",
+    "createdAt": "2026-05-24T13:44:32.0099086Z",
+    "updatedAt": "2026-05-24T13:44:32.0099131Z",
+    "products": [],
+    "users": []
+  },
+  {
+    "id": 2,
+    "name": "Electronics",
+    "description": "Electronic components and devices",
+    "location": "Building B",
+    "createdAt": "2026-05-24T13:44:32.0100575Z",
+    "updatedAt": "2026-05-24T13:44:32.0100576Z",
+    "products": [],
+    "users": []
+  },
+  {
+    "id": 3,
+    "name": "Clothing",
+    "description": "Apparel and textiles",
+    "location": "Building C",
+    "createdAt": "2026-05-24T13:44:32.0100579Z",
+    "updatedAt": "2026-05-24T13:44:32.010058Z",
+    "products": [],
+    "users": []
+  }
+]
