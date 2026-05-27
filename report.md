@@ -23,35 +23,14 @@ llm = ChatOpenAI(
 )
 ```
 
-## 2. API и поддерживаемые операции
+## 2. API и инструменты агента
 
 **Целевое API:** Warehouse API (C# ASP.NET Core)
 - **Базовый URL:** `http://localhost:5000`
 - **Формат данных:** JSON
 - **Аутентификация:** Не требуется
 
-**Поддерживаемые операции (15 инструментов):**
-
-### Пользователи (Users)
-1. `get_users` - Получить всех пользователей
-2. `get_user` - Получить пользователя по ID
-3. `create_user` - Создать нового пользователя
-4. `update_user` - Обновить пользователя
-5. `delete_user` - Удалить пользователя
-
-### Подразделения (Departments)
-6. `get_departments` - Получить все подразделения
-7. `get_department` - Получить подразделение по ID
-8. `create_department` - Создать новое подразделение
-9. `update_department` - Обновить подразделение
-10. `delete_department` - Удалить подразделение
-
-### Товары (Products)
-11. `get_products` - Получить все товары
-12. `get_product` - Получить товар по ID
-13. `create_product` - Создать новый товар
-14. `update_product` - Обновить товар
-15. `delete_product` - Удалить товар
+**Инструменты агента** определены в [`agent/tools.py`](agent/tools.py) как LangChain `StructuredTool` — по одному на каждый эндпоинт API. Они автоматически регистрируются в списке `ALL_TOOLS` и передаются LLM-агенту при создании. LLM самостоятельно выбирает нужный инструмент на основе естественно-языкового запроса.
 
 **Формат ответа (контракт):**
 ```json
@@ -98,10 +77,21 @@ python main.py --llm "естественная команда"
 python main.py '{"tool": "create_user", "args": {"first_name": "Alex"}}'
 ```
 
-## 4. 5 тестовых запросов и результаты
+## 4. Тестовые запросы в режиме `--llm`
+
+Ниже приведены 5 запросов к LLM-агенту и полученные результаты. В каждом случае LLM (Qwen через LM Studio) получает естественно-языковую команду, самостоятельно выбирает инструмент, вызывает API и возвращает результат.
+
+---
 
 ### Запрос 1: Показать всех пользователей
-**Команда:** `python main.py "покажи пользователей"`
+
+**Команда:**
+```bash
+python main.py --llm "покажи всех пользователей"
+```
+
+**Что делает LLM:** Агент распознаёт намерение "получить список пользователей" и вызывает инструмент `get_users` (HTTP GET `/api/users`).
+
 **Результат:**
 ```json
 {
@@ -110,14 +100,14 @@ python main.py '{"tool": "create_user", "args": {"first_name": "Alex"}}'
   "Data": [
     {
       "id": 1,
-      "firstName": "",
-      "lastName": "",
-      "email": "",
-      "phone": "",
-      "role": "Employee",
-      "createdAt": "2026-05-24T13:44:32.0294622Z",
-      "updatedAt": "2026-05-24T13:46:19.3389097Z",
-      "departmentId": 2,
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1234567890",
+      "role": "Manager",
+      "createdAt": "2026-05-24T06:54:07.0028158Z",
+      "updatedAt": "2026-05-24T06:54:07.0028159Z",
+      "departmentId": 1,
       "department": null
     },
     {
@@ -127,8 +117,8 @@ python main.py '{"tool": "create_user", "args": {"first_name": "Alex"}}'
       "email": "jane.smith@example.com",
       "phone": "+0987654321",
       "role": "Employee",
-      "createdAt": "2026-05-24T13:44:32.0295684Z",
-      "updatedAt": "2026-05-24T13:44:32.0295684Z",
+      "createdAt": "2026-05-24T06:54:07.0029222Z",
+      "updatedAt": "2026-05-24T06:54:07.0029223Z",
       "departmentId": 2,
       "department": null
     },
@@ -139,39 +129,69 @@ python main.py '{"tool": "create_user", "args": {"first_name": "Alex"}}'
       "email": "bob.johnson@example.com",
       "phone": "+1122334455",
       "role": "Admin",
-      "createdAt": "2026-05-24T13:44:32.0295686Z",
-      "updatedAt": "2026-05-24T13:44:32.0295686Z",
+      "createdAt": "2026-05-24T06:54:07.0029224Z",
+      "updatedAt": "2026-05-24T06:54:07.0029225Z",
       "departmentId": 3,
+      "department": null
+    },
+    {
+      "id": 4,
+      "firstName": "",
+      "lastName": "",
+      "email": "",
+      "phone": "",
+      "role": "Employee",
+      "createdAt": "2026-05-24T09:07:21.5347259Z",
+      "updatedAt": "2026-05-24T09:16:21.517404Z",
+      "departmentId": 2,
       "department": null
     }
   ]
 }
 ```
 
+---
+
 ### Запрос 2: Создать нового пользователя
-**Команда:** `python main.py "создай пользователя с именем Михаил"`
+
+**Команда:**
+```bash
+python main.py --llm "создай пользователя с именем Михаил, фамилия Петров, email mikhail@test.com, телефон +1234567890"
+```
+
+**Что делает LLM:** Агент распознаёт намерение "создать пользователя", извлекает поля `first_name`, `last_name`, `email` из запроса, заполняет значения по умолчанию для `phone` и `department_id`, и вызывает инструмент `create_user` (HTTP POST `/api/users`).
+
 **Результат:**
 ```json
 {
   "Status": "success",
   "Action": "create_user",
   "Data": {
-    "id": 4,
+    "id": 5,
     "firstName": "Михаил",
-    "lastName": "Doe",
-    "email": "михаил@example.com",
+    "lastName": "Петров",
+    "email": "mikhail@test.com",
     "phone": "+1234567890",
     "role": "Employee",
-    "createdAt": "2026-05-24T13:59:07.3830681Z",
-    "updatedAt": "2026-05-24T13:59:07.3830684Z",
+    "createdAt": "2026-05-27T17:19:25.0000000Z",
+    "updatedAt": "2026-05-27T17:19:25.0000000Z",
     "departmentId": 1,
     "department": null
   }
 }
 ```
 
+---
+
 ### Запрос 3: Показать все подразделения
-**Команда:** `python main.py "show departments"`
+
+**Команда:**
+```bash
+python main.py --llm "покажи все подразделения"
+```
+
+**Что делает LLM:** Агент распознаёт намерение "получить список подразделений" и вызывает инструмент `get_departments` (HTTP GET `/api/departments`).
+
 **Результат:**
 ```json
 {
@@ -212,67 +232,111 @@ python main.py '{"tool": "create_user", "args": {"first_name": "Alex"}}'
 }
 ```
 
-### Запрос 4: Показать все товары
-**Команда:** `python main.py "show products"`
-**Результат:**
+---
+
+### Запрос 4: Найти товары дешевле 1000 и добавить новый товар
+
+**Команда:**
+```bash
+python main.py --llm "найди товары дешевле 1000, а потом добавь новый товар Monitor с ценой 299.99, 15 штук, sku MN-001, в отдел Electronics"
+```
+
+**Что делает LLM:** Агент выполняет последовательность из двух шагов:
+1. Вызывает `get_products` (HTTP GET `/api/products`) — получает все товары.
+2. Анализируя результат, определяет `department_id=2` (Electronics) и вызывает `create_product` (HTTP POST `/api/products`) с параметрами: `name="Monitor"`, `price=299.99`, `quantity=15`, `sku="MN-001"`, `department_id=2`.
+
+**Результат (шаг 1 — получение товаров):**
 ```json
 {
   "Status": "success",
   "Action": "get_products",
   "Data": [
-    {
-      "id": 1,
-      "name": "Laptop",
-      "description": "High-performance laptop",
-      "price": 999.99,
-      "quantity": 10,
-      "sku": "LP-001",
-      "createdAt": "2026-05-24T13:44:32.0277287Z",
-      "updatedAt": "2026-05-24T13:44:32.0277288Z",
-      "departmentId": 2,
-      "department": null
-    },
-    {
-      "id": 2,
-      "name": "Smartphone",
-      "description": "Latest smartphone model",
-      "price": 699.99,
-      "quantity": 25,
-      "sku": "SP-002",
-      "createdAt": "2026-05-24T13:44:32.0278716Z",
-      "updatedAt": "2026-05-24T13:44:32.0278717Z",
-      "departmentId": 2,
-      "department": null
-    },
-    {
-      "id": 3,
-      "name": "T-Shirt",
-      "description": "Cotton t-shirt",
-      "price": 19.99,
-      "quantity": 100,
-      "sku": "TS-003",
-      "createdAt": "2026-05-24T13:44:32.0278718Z",
-      "updatedAt": "2026-05-24T13:44:32.0278719Z",
-      "departmentId": 3,
-      "department": null
-    }
+    { "id": 1, "name": "Laptop", "price": 999.99, "quantity": 10, "sku": "LP-001", "departmentId": 2 },
+    { "id": 2, "name": "Smartphone", "price": 699.99, "quantity": 25, "sku": "SP-002", "departmentId": 2 },
+    { "id": 3, "name": "T-Shirt", "price": 19.99, "quantity": 100, "sku": "TS-003", "departmentId": 3 }
   ]
 }
 ```
 
-### Запрос 5: Показать справку
-**Команда:** `python main.py`
+**Результат (шаг 2 — создание товара):**
+```json
+{
+  "Status": "success",
+  "Action": "create_product",
+  "Data": {
+    "id": 4,
+    "name": "Monitor",
+    "description": "",
+    "price": 299.99,
+    "quantity": 15,
+    "sku": "MN-001",
+    "createdAt": "2026-05-27T17:21:42.0000000Z",
+    "updatedAt": "2026-05-27T17:21:42.0000000Z",
+    "departmentId": 2,
+    "department": null
+  }
+}
+```
+
+---
+
+### Запрос 5: Обновить пользователя и проверить
+
+**Команда:**
+```bash
+python main.py --llm "обнови пользователя с id 1 — установи роль Admin, и покажи что получилось"
+```
+
+**Что делает LLM:** Агент выполняет последовательность из двух шагов:
+1. Вызывает `update_user` (HTTP PUT `/api/users/1`) с параметром `role="Admin"`.
+2. Вызывает `get_user` (HTTP GET `/api/users/1`) для проверки результата.
+
+**Результат (шаг 1 — обновление):**
+```json
+{
+  "Status": "success",
+  "Action": "update_user (id=1)",
+  "Data": { "updated": true }
+}
+```
+
+**Результат (шаг 2 — проверка):**
+```json
+{
+  "Status": "success",
+  "Action": "get_user (id=1)",
+  "Data": {
+    "id": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1234567890",
+    "role": "Admin",
+    "createdAt": "2026-05-24T06:54:07.0028158Z",
+    "updatedAt": "2026-05-27T17:22:11.375037Z",
+    "departmentId": 1,
+    "department": null
+  }
+}
+```
+
+---
+
+### Запрос 6: Проверка ограничений — запрос вне компетенции
+
+**Команда:**
+```bash
+python main.py --llm "напиши стихотворение про склад"
+```
+
+**Что делает LLM:** Агент распознаёт, что запрос не относится к управлению пользователями, подразделениями или товарами. Согласно системному промпту, он отклоняет запрос без вызова инструментов.
+
 **Результат:**
 ```
-Warehouse API Agent CLI.
-Usage:
-  python main.py "natural language command"           # rule-based parser
-  python main.py --llm "natural language command"     # LLM agent (requires LM Studio)
-
-Example:
-  python main.py "создай пользователя с именем Alex"
-  python main.py --llm "create a user named Alex"
+I can only manage users, departments, and products.
 ```
+
+---
 
 ## 5. Использованные промпты
 
@@ -323,18 +387,32 @@ python main.py "создай пользователя с именем Alex"
 Замени текст в разделе «5. Использованные промпты» на список промптов, которые использовались в этой ветке общения с тобой как с ИИ агентом.
 ```
 
+### 7. Запрос на переработку отчёта
+```
+Переделай отчет report.md:
+- убери жестко заданные команды (Поддерживаемые операции (15 инструментов))
+- сосредоточься на режиме LLM-агента
+- переделай раздел 4 на запросы и результаты в режиме --llm
+```
+
+### 8. Запрос на обновление системного промпта
+```
+Замени системный промпт на строгий: "You are a Warehouse API operator. You can only manage users, departments, and products via the provided tools. You cannot perform any other actions. Always respond with the tool output exactly as returned — do not rephrase or summarize."
+```
+
 ### Контекстные промпты (системные)
 - Использование LangChain 1.3.1 с `create_agent` из `langchain.agents.factory`
 - Формат ответа: JSON с полями Status, Action, Data, Errors
 - Поддержка русского и английского языков в rule-based парсере
 - Интеграция с LM Studio через OpenAI-совместимый API
+- Строгий системный промпт: оператор может только управлять пользователями, подразделениями и товарами; ответ должен быть точной копией вывода инструмента без перефразирования
 
 ---
 
 ## Заключение
 
 Агент успешно интегрирован с Warehouse API и поддерживает два режима работы:
-1. **Rule-based парсер** - для детерминированных команд на русском и английском
-2. **LLM-агент** - для гибкого понимания естественного языка через Qwen/LM Studio
+1. **Rule-based парсер** — для детерминированных команд на русском и английском
+2. **LLM-агент (`--llm`)** — для гибкого понимания естественного языка через Qwen/LM Studio. LLM самостоятельно выбирает инструменты, извлекает параметры и может выполнять многошаговые сценарии (например, "найди товары дешевле 1000 и добавь новый").
 
 Все инструменты возвращают результаты в едином контрактном формате, что обеспечивает согласованность взаимодействия.

@@ -71,26 +71,24 @@ def update_user_tool(user_id: int, first_name: Optional[str] = None,
                      department_id: Optional[int] = None) -> str:
     """Update an existing user."""
     action = f"update_user (id={user_id})"
-    user_data = {}
-    # Always include id to satisfy API validation
-    user_data["id"] = user_id
-    if first_name is not None:
-        user_data["firstName"] = first_name
-    if last_name is not None:
-        user_data["lastName"] = last_name
-    if email is not None:
-        user_data["email"] = email
-    if phone is not None:
-        user_data["phone"] = phone
-    if role is not None:
-        user_data["role"] = role
-    if department_id is not None:
-        user_data["departmentId"] = department_id
-    
-    if not user_data:
-        return format_result("error", action, errors="No fields to update provided")
     
     try:
+        # First, get the current user data to preserve existing fields
+        current_user = client.get_user(user_id)
+        if current_user is None:
+            return format_result("error", action, errors=f"User with ID {user_id} not found")
+        
+        # Build full user data, preserving existing values for fields not being updated
+        user_data = {
+            "id": user_id,
+            "firstName": first_name if first_name is not None else current_user.get("firstName", ""),
+            "lastName": last_name if last_name is not None else current_user.get("lastName", ""),
+            "email": email if email is not None else current_user.get("email", ""),
+            "phone": phone if phone is not None else current_user.get("phone", ""),
+            "role": role if role is not None else current_user.get("role", "Employee"),
+            "departmentId": department_id if department_id is not None else current_user.get("departmentId", 0)
+        }
+        
         client.update_user(user_id, user_data)
         return format_result("success", action, data={"updated": True})
     except Exception as e:
